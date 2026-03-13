@@ -161,7 +161,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style>
   .main-wrapper {
     padding: 12px;
   }

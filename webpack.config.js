@@ -1,112 +1,100 @@
-var path = require('path')
-var webpack = require('webpack')
+const path = require('path')
+const TerserPlugin = require('terser-webpack-plugin')
+const { VueLoaderPlugin } = require('vue-loader')
 
-module.exports = {
-  entry: './src/main.js', // dev
-  // entry: './src/lib/index.js', // npm
-  output: {
-    path: path.resolve(__dirname, './dist'),
-    publicPath: 'dist/',
-    filename: 'vue-awesome-picker.js',
-    library: 'VueAwesomePicker',
-    libraryTarget: 'umd',
-    umdNamedDefine: true
-  },
-  module: {
-    rules: [
-      {
-        test: /\.css$/,
-        use: [
-          'vue-style-loader',
-          'css-loader'
-        ],
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          'vue-style-loader',
-          'css-loader',
-          'sass-loader'
-        ],
-      },
-      {
-        test: /\.sass$/,
-        use: [
-          'vue-style-loader',
-          'css-loader',
-          'sass-loader?indentedSyntax'
-        ],
-      },
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader',
-        options: {
-          loaders: {
-            // Since sass-loader (weirdly) has SCSS as its default parse mode, we map
-            // the "scss" and "sass" values for the lang attribute to the right configs here.
-            // other preprocessors should work out of the box, no loader config like this necessary.
-            'scss': [
-              'vue-style-loader',
-              'css-loader',
-              'sass-loader'
-            ],
-            'sass': [
-              'vue-style-loader',
-              'css-loader',
-              'sass-loader?indentedSyntax'
-            ]
-          }
-          // other vue-loader options go here
-        }
-      },
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/
-      },
-      {
-        test: /\.(png|jpg|gif|svg)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[name].[ext]?[hash]'
-        }
-      }
-    ]
-  },
-  resolve: {
-    alias: {
-      'vue$': 'vue/dist/vue.esm.js'
+module.exports = (env = {}, argv = {}) => {
+  const isProd = argv.mode === 'production'
+  const target = env.target || (isProd ? 'lib' : 'demo')
+  const isLibBuild = target === 'lib'
+
+  return {
+    mode: isProd ? 'production' : 'development',
+    entry: isLibBuild ? './src/lib/index.js' : './src/main.js',
+    output: {
+      path: path.resolve(__dirname, './dist'),
+      publicPath: '/dist/',
+      filename: 'vue-awesome-picker.js',
+      clean: isLibBuild,
+      library: isLibBuild ? 'VueAwesomePicker' : undefined,
+      libraryTarget: isLibBuild ? 'umd' : undefined,
+      umdNamedDefine: isLibBuild,
+      globalObject: 'this'
     },
-    extensions: ['*', '.js', '.vue', '.json']
-  },
-  devServer: {
-    historyApiFallback: true,
-    noInfo: true,
-    overlay: true
-  },
-  performance: {
-    hints: false
-  },
-  devtool: '#eval-source-map'
-}
-
-if (process.env.NODE_ENV === 'production') {
-  module.exports.devtool = '#source-map'
-  // http://vue-loader.vuejs.org/en/workflow/production.html
-  module.exports.plugins = (module.exports.plugins || []).concat([
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"'
+    externals: isLibBuild
+      ? {
+        vue: {
+          commonjs: 'vue',
+          commonjs2: 'vue',
+          amd: 'vue',
+          root: 'Vue'
+        }
       }
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      compress: {
-        warnings: false
+      : undefined,
+    module: {
+      rules: [
+        {
+          test: /\.vue$/,
+          loader: 'vue-loader'
+        },
+        {
+          test: /\.js$/,
+          loader: 'babel-loader',
+          exclude: /node_modules/
+        },
+        {
+          test: /\.css$/,
+          use: [
+            'vue-style-loader',
+            'css-loader'
+          ]
+        },
+        {
+          test: /\.(png|jpe?g|gif|svg)$/i,
+          type: 'asset/resource',
+          generator: {
+            filename: 'assets/[name][ext][query]'
+          }
+        }
+      ]
+    },
+    resolve: {
+      alias: {
+        'vue$': 'vue/dist/vue.esm.js'
+      },
+      extensions: ['.js', '.vue', '.json']
+    },
+    plugins: [
+      new VueLoaderPlugin()
+    ],
+    devServer: isLibBuild
+      ? undefined
+      : {
+        static: {
+          directory: path.resolve(__dirname)
+        },
+        devMiddleware: {
+          publicPath: '/dist/'
+        },
+        historyApiFallback: true,
+        hot: true,
+        host: '0.0.0.0',
+        allowedHosts: 'all',
+        client: {
+          overlay: true
+        }
+      },
+    performance: {
+      hints: false
+    },
+    optimization: isProd
+      ? {
+        minimizer: [
+          new TerserPlugin({
+            extractComments: false
+          })
+        ]
       }
-    }),
-    new webpack.LoaderOptionsPlugin({
-      minimize: true
-    })
-  ])
+      : undefined,
+    devtool: isProd ? 'source-map' : 'eval-cheap-module-source-map'
+  }
 }
