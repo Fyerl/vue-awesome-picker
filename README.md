@@ -1,7 +1,6 @@
 # vue-awesome-picker [![NPM Version][npm-image]][npm-url] [![NPM Downloads][downloads-image]][downloads-url]
 基于 [Vue.js](https://github.com/vuejs/vue) & [Better-Scroll](https://github.com/ustbhuangyi/better-scroll) 的移动端 picker 组件
-
-> 这是一个 **Vue 2** 组件（非 Vue 3 组件）。
+> 推荐在宿主项目使用 `vue@2.7.16`（或 `2.7.x`），不支持 Vue 3
 
 ## Features
 * 支持单列、多列和联级数据
@@ -18,8 +17,6 @@
 ``` bash
 npm install vue-awesome-picker --save
 ```
-
-推荐在宿主项目使用 `vue@2.7.16`（或 `2.7.x`）
 
 ## Usage
 ``` javascript
