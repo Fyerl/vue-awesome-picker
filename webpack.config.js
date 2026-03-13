@@ -12,8 +12,8 @@ module.exports = (env = {}, argv = {}) => {
     entry: isLibBuild ? './src/lib/index.js' : './src/main.js',
     output: {
       path: path.resolve(__dirname, './dist'),
-      publicPath: '/dist/',
-      filename: 'vue-awesome-picker.js',
+      publicPath: './dist/',
+      filename: isLibBuild ? 'vue-awesome-picker.js' : 'demo.js',
       clean: isLibBuild,
       library: isLibBuild ? 'VueAwesomePicker' : undefined,
       libraryTarget: isLibBuild ? 'umd' : undefined,

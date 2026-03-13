@@ -149,6 +149,7 @@ git clone git@github.com:Fyerl/vue-awesome-picker.git
 cd vue-awesome-picker
 npm install
 npm run dev
+npm run build
 ```
 
 [npm-image]: https://img.shields.io/npm/v/vue-awesome-picker.svg?style=flat
