@@ -39,8 +39,8 @@ const TYPE_TIME = 'time'
 const TYPE_DATE = 'date'
 
 const TEXT_TITLE = ''
-const TEXT_CONFIRM = '确定'
-const TEXT_CANCEL = '取消'
+const TEXT_CONFIRM = 'Confirm'
+const TEXT_CANCEL = 'Cancel'
 
 const COLOR_TITLE = '#000000'
 const COLOR_CONFIRM = '#42b983'

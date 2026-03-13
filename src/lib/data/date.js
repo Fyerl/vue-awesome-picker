@@ -3,9 +3,9 @@ import range from './range'
 const START_YEAR = 1900
 const END_YEAR = 2100
 
-const UNIT_YEAR = '年'
-const UNIT_MONTH = '月'
-const UNIT_DAY = '日'
+const UNIT_YEAR = 'Y'
+const UNIT_MONTH = 'M'
+const UNIT_DAY = 'D'
 
 function isLeapYear (y) {
   return (y % 4 === 0) && (y % 100 !== 0 || y % 400 === 0)
@@ -39,6 +39,10 @@ function getDays (y, m) {
   })
 };
 
+function stripUnit (value, unit) {
+  return String(value).replace(unit, '')
+}
+
 const yearData = range(START_YEAR, END_YEAR, false, UNIT_YEAR)
 const monthData = range(1, 12, false, UNIT_MONTH)
 
@@ -55,7 +59,7 @@ const dateData = yearData.map((year) => {
     children: cascadeMonthData.slice()
   }
   item.children.forEach((month) => {
-    month.children = getDays(year.slice(0, -1), month.value.slice(0, -1))
+    month.children = getDays(stripUnit(year, UNIT_YEAR), stripUnit(month.value, UNIT_MONTH))
   })
   return item
 })

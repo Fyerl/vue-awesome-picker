@@ -11,9 +11,9 @@
     <div id="app"></div>
     <script>
       navigator.serviceWorker && navigator.serviceWorker.register('./sw.js').then(() => {
-        console.log('service worker 注册成功')
+        console.log('Service worker registered successfully')
       }).catch((e) => {
-        console.log(`service worker 存在但注册失败：${e}`)
+        console.log(`Service worker registration failed: ${e}`)
       });
     </script>
     <script src="./dist/vue-awesome-picker.js"></script>

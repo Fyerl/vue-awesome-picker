@@ -6,7 +6,7 @@ const cacheUrls = [
 ]
 
 self.addEventListener('install', (event) => {
-  event.waitUntil( // 确保在缓存之后完成 install
+  event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(cacheUrls))
   )
 })

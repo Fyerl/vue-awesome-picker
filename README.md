@@ -1,31 +1,40 @@
 # vue-awesome-picker [![NPM Version][npm-image]][npm-url] [![NPM Downloads][downloads-image]][downloads-url]
-基于 [Vue.js](https://github.com/vuejs/vue) & [Better-Scroll](https://github.com/ustbhuangyi/better-scroll) 的移动端 picker 组件
-> 推荐在宿主项目使用 `vue@2.7.16`（或 `2.7.x`），不支持 Vue 3
+
+A mobile picker component built with [Vue.js](https://github.com/vuejs/vue) and [BetterScroll](https://github.com/ustbhuangyi/better-scroll).
+
+> This is a **Vue 2** component.  
+> Recommended Vue version: `vue@2.7.16` (or `2.7.x`). Vue 3 is not supported.
 
 ## Features
-* 支持单列、多列和联级数据
-* 内置时间、日期数据
-* 滚轮 3D 效果
-* 颜色可配置
+
+- Supports single-column, multi-column, and cascade data
+- Built-in time and date picker modes
+- 3D wheel scrolling effect
+- Customizable title/text/colors
 
 ## Demo
->PS：Demo 已启用 Service Worker
+
+> The demo enables Service Worker.
 
 ![](./static/img/qr-code.png)
 
 ## Installation
-``` bash
+
+```bash
 npm install vue-awesome-picker --save
 ```
 
 ## Usage
-``` javascript
-/* main.js */
-import AwesomePicker from 'vue-awesome-picker';
-Vue.use(AwesomePicker);
+
+```javascript
+// main.js
+import AwesomePicker from 'vue-awesome-picker'
+
+Vue.use(AwesomePicker)
 ```
-``` javascript
-/* 详细使用方法参照源码 App.vue */
+
+```vue
+<!-- See src/App.vue for a full example -->
 <awesome-picker
   ref="picker"
   :data="picker.data"
@@ -38,44 +47,48 @@ Vue.use(AwesomePicker);
   :colorCancel="picker.colorCancel"
   :swipeTime="picker.swipeTime"
   @cancel="handlePickerCancel"
-  @confirm="handlePickerConfirm">
-</awesome-picker>
+  @confirm="handlePickerConfirm"
+/>
 ```
-``` javascript
+
+```javascript
 methods: {
-  show() {
-    this.$refs.picker.show();
+  show () {
+    this.$refs.picker.show()
   }
 }
 ```
 
 ## Props
 
-| 参数 | 描述 | 可选 | 类型 | 默认
-| ----- | ----- | ----- | ----- | ----- |
-| data | 详细描述见下文 || Array |
-| anchor | 详细描述见下文 || Array |
-| type | 内置 picker 类型<br>无需传入 data | date, time | String |
-| textTitle | title 文案 || String |
-| textConfirm | confirm 文案 || String | 确定
-| textCancel | cancel 文案 || String | 取消
-| colorTitle | title 颜色 || String | #000000
-| colorConfirm | confirm 颜色 || String | #42b983
-| colorCancel | cancel 颜色 || String | #999999
-| swipeTime | 滚动速度([better-scroll swipeTime](https://ustbhuangyi.github.io/better-scroll/doc/zh-hans/options.html#swipetime)) | | Number | 1800
+| Prop | Description | Options | Type | Default |
+| --- | --- | --- | --- | --- |
+| `data` | See the `data` section below | - | `Array` | `[]` |
+| `anchor` | See the `anchor` section below | - | `Array` | `[]` |
+| `type` | Built-in picker type (no `data` required) | `date`, `time` | `String` | - |
+| `textTitle` | Title text | - | `String` | `''` |
+| `textConfirm` | Confirm button text | - | `String` | `Confirm` |
+| `textCancel` | Cancel button text | - | `String` | `Cancel` |
+| `colorTitle` | Title color | - | `String` | `#000000` |
+| `colorConfirm` | Confirm button color | - | `String` | `#42b983` |
+| `colorCancel` | Cancel button color | - | `String` | `#999999` |
+| `swipeTime` | Wheel swipe duration ([better-scroll swipeTime](https://ustbhuangyi.github.io/better-scroll/doc/zh-hans/options.html#swipetime)) | - | `Number` | `1800` |
 
-### data
->vue-awesome-picker 通过数据结构不同来区分是普通 picker 还是联级 picker, 所以请严格按照以下数据结构进行配置
+### `data`
 
-单列、多列 picker 以双层数组的形式传入 data
-``` javascript
+`vue-awesome-picker` determines whether the picker is normal or cascade by `data` shape, so please follow one of the formats below.
+
+Normal picker (single or multi-column): pass a two-dimensional array.
+
+```javascript
 [
-  ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's','t', 'u', 'v', 'w', 'x', 'y', 'z'],
-  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S','T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+  ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
+  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 ]
 ```
 
-联级 picker 通过 children 构造出具有层级关系的数据
+Cascade picker: build hierarchy using `children`.
+
 ```javascript
 [
   {
@@ -92,44 +105,46 @@ methods: {
       { value: 'B-a' },
       { value: 'B-b' }
     ]
-  },
+  }
 ]
 ```
-### anchor
->anchor 是 picker 展开时每一列默认滚动的锚点位置或值的数组, 兼容两种数据结构, 未匹配到默认选中第0项
 
-[推荐]数组对象形式: 与事件 confirm 返回的参数数据结构相同, 对象里可以只存在 index 或 value, 当存在 index 时优先匹配 index
+### `anchor`
+
+`anchor` controls the default selected item for each wheel when the picker opens. It supports two formats. If no match is found, index `0` is selected.
+
+Recommended object array format (same shape as the `confirm` event payload).  
+When both `index` and `value` exist, `index` has higher priority.
+
 ```javascript
 [
-  { 
-    index: 0,
-    value: 'A'
-  },
-  {
-    index: 0,
-    value: 'A-a'
-  } 
+  { index: 0, value: 'A' },
+  { index: 0, value: 'A-a' }
 ]
 ```
-单层数组形式: index 组成的数组
+
+Index array format:
+
 ```javascript
 [0, 0]
 ```
 
 ## Methods
-| 方法 | 描述 |
-| ----- | ----- |
-| show | 展开显示 picker | 
+
+| Method | Description |
+| --- | --- |
+| `show` | Open the picker |
 
 ## Events
-| 事件 | 描述 | 参数
-| ----- | ----- | -----
-| confirm | 点击 confirm 按钮后触发 | [{ index: xxx, value: xxx }...] <br> index: 当前选中的 item 在当列的 index <br> value: 当前选中 item 的 value
-| cancel | 点击 cancel 按钮后触发 |
+
+| Event | Description | Payload |
+| --- | --- | --- |
+| `confirm` | Triggered after clicking the confirm button | `[{ index, value }, ...]` |
+| `cancel` | Triggered after clicking the cancel button | - |
 
 ## Development
 
-``` bash
+```bash
 git clone git@github.com:Fyerl/vue-awesome-picker.git
 cd vue-awesome-picker
 npm install

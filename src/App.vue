@@ -1,11 +1,11 @@
 <template>
   <div id="app" class="main-wrapper">
     <textarea v-model="value"></textarea>
-    <p class="btn" @click="showPicker0">多列</p>
-    <p class="btn" @click="showPicker1">联级</p>
-    <p class="btn" @click="showPicker4">区域</p>
-    <p class="btn" @click="showPicker2">时间(内置)</p>
-    <p class="btn" @click="showPicker3">日期(内置)</p>
+    <p class="btn" @click="showPicker0">Multi-Column</p>
+    <p class="btn" @click="showPicker1">Cascade</p>
+    <p class="btn" @click="showPicker4">Region</p>
+    <p class="btn" @click="showPicker2">Built-in Time</p>
+    <p class="btn" @click="showPicker3">Built-in Date</p>
     <awesome-picker
       ref="picker0"
       :textTitle="picker0.textTitle"
@@ -61,12 +61,12 @@ export default {
       value: null,
       picker0: {
         anchor: [],
-        textTitle: '多列选择器',
+        textTitle: 'Multi-Column Picker',
         data: [data1, data2]
       },
       picker1: {
         anchor: [],
-        textTitle: '联级选择器',
+        textTitle: 'Cascade Picker',
         data: [
           {
             value: 'A',
@@ -102,17 +102,17 @@ export default {
       },
       picker2: {
         anchor: [],
-        textTitle: '时间选择器(内置)',
+        textTitle: 'Time Picker (Built-in)',
         type: 'time'
       },
       picker3: {
         anchor: [],
-        textTitle: '日期选择器(内置)',
+        textTitle: 'Date Picker (Built-in)',
         type: 'date'
       },
       picker4: {
         anchor: [],
-        textTitle: '区域选择器',
+        textTitle: 'Region Picker',
         data: areaData
       }
     }
