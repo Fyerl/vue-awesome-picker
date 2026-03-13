@@ -10,11 +10,14 @@
   <body>
     <div id="app"></div>
     <script>
-      navigator.serviceWorker && navigator.serviceWorker.register('./sw.js').then(() => {
-        console.log('Service worker registered successfully')
-      }).catch((e) => {
-        console.log(`Service worker registration failed: ${e}`)
-      });
+      const isLocalDev = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
+      if (!isLocalDev && navigator.serviceWorker) {
+        navigator.serviceWorker.register('./sw.js').then(() => {
+          console.log('Service worker registered successfully')
+        }).catch((e) => {
+          console.log(`Service worker registration failed: ${e}`)
+        })
+      }
     </script>
     <script src="./dist/vue-awesome-picker.js"></script>
   </body>

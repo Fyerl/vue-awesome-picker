@@ -214,6 +214,7 @@ export default {
             selectedIndex: 0,
             rotate: 25
           },
+          mouseWheel: true,
           swipeTime: this.swipeTime
         })
         wheel.on('scrollEnd', () => {
