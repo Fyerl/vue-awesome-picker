@@ -10,11 +10,27 @@
   <body>
     <div id="app"></div>
     <script>
-      navigator.serviceWorker && navigator.serviceWorker.register('./sw.js').then(() => {
-        console.log('service worker 注册成功')
-      }).catch((e) => {
-        console.log(`service worker 存在但注册失败：${e}`)
-      });
+      const localHostPattern = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|::1)$/
+      const privateIpPattern = /^(10\.\d+|192\.168\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+)\.\d+$/
+      const isLocalDev = localHostPattern.test(location.hostname) || privateIpPattern.test(location.hostname)
+
+      if (isLocalDev && navigator.serviceWorker) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          return Promise.all(registrations.map((registration) => registration.unregister()))
+        }).then(() => {
+          if (window.caches) {
+            return caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+          }
+        }).catch((e) => {
+          console.log(`Local SW cleanup failed: ${e}`)
+        })
+      } else if (navigator.serviceWorker) {
+        navigator.serviceWorker.register('./sw.js').then(() => {
+          console.log('Service worker registered successfully')
+        }).catch((e) => {
+          console.log(`Service worker registration failed: ${e}`)
+        })
+      }
     </script>
     <script src="./dist/vue-awesome-picker.js"></script>
   </body>
