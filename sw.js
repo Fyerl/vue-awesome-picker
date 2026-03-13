@@ -1,13 +1,16 @@
-const CACHE_NAME = 'vap-cache-7'
+const CACHE_VERSION = '2.0.0'
+const CACHE_NAME = `vap-cache-${CACHE_VERSION}`
 const cacheUrls = [
   './',
-  './dist/vue-awesome-picker.js',
+  './dist/demo.js',
   './static/img/vue-logo.png'
 ]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(cacheUrls))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(cacheUrls))
+      .then(() => self.skipWaiting())
   )
 })
 
@@ -29,6 +32,6 @@ self.addEventListener('activate', (event) => {
           }
         })
       )
-    })
+    }).then(() => self.clients.claim())
   )
 })

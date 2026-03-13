@@ -15,8 +15,13 @@
     "better-scroll"
   ],
   "scripts": {
+    "sync:sw-version": "node scripts/sync-sw-version.js",
+    "predev": "npm run sync:sw-version",
+    "prebuild": "npm run sync:sw-version",
     "dev": "cross-env NODE_ENV=development webpack serve --config webpack.config.js --env target=demo --mode development --open --host 0.0.0.0",
-    "build": "cross-env NODE_ENV=production webpack --config webpack.config.js --env target=lib --mode production",
+    "build": "npm run build:lib && npm run build:demo",
+    "build:lib": "cross-env NODE_ENV=production webpack --config webpack.config.js --env target=lib --mode production",
+    "build:demo": "cross-env NODE_ENV=production webpack --config webpack.config.js --env target=demo --mode production",
     "lint": "eslint --ext .js,.vue src"
   },
   "repository": {
