@@ -46,22 +46,14 @@ function stripUnit (value, unit) {
 const yearData = range(START_YEAR, END_YEAR, false, UNIT_YEAR)
 const monthData = range(1, 12, false, UNIT_MONTH)
 
-const cascadeMonthData = monthData.map((month) => {
-  return {
-    value: month,
-    children: []
-  }
-})
-
 const dateData = yearData.map((year) => {
-  const item = {
+  return {
     value: year,
-    children: cascadeMonthData.slice()
+    children: monthData.map((month) => ({
+      value: month,
+      children: getDays(stripUnit(year, UNIT_YEAR), stripUnit(month, UNIT_MONTH))
+    }))
   }
-  item.children.forEach((month) => {
-    month.children = getDays(stripUnit(year, UNIT_YEAR), stripUnit(month.value, UNIT_MONTH))
-  })
-  return item
 })
 
 const date = new Date()
