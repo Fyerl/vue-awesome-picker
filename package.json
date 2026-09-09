@@ -15,6 +15,7 @@
     "better-scroll"
   ],
   "scripts": {
+    "test:date": "node --test tests/date.test.cjs",
     "sync:sw-version": "node scripts/sync-sw-version.js",
     "predev": "npm run sync:sw-version",
     "prebuild": "npm run sync:sw-version",
