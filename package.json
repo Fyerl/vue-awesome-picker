@@ -16,6 +16,7 @@
   ],
   "scripts": {
     "test:date": "node --test tests/date.test.cjs",
+    "test:browser": "npm run build && playwright test",
     "sync:sw-version": "node scripts/sync-sw-version.js",
     "predev": "npm run sync:sw-version",
     "prebuild": "npm run sync:sw-version",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@babel/core": "^7.28.4",
     "@babel/preset-env": "^7.28.3",
+    "@playwright/test": "1.63.0",
     "babel-loader": "^9.2.1",
     "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",

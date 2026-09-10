@@ -140,7 +140,7 @@ Index array format:
 | Event | Description | Payload |
 | --- | --- | --- |
 | `confirm` | Triggered after clicking the confirm button | `[{ index, value }, ...]` |
-| `cancel` | Triggered after clicking the cancel button | - |
+| `cancel` | Triggered after clicking the cancel button or the mask outside the picker | - |
 
 ## Development
 
@@ -151,6 +151,16 @@ npm install
 npm run dev
 npm run build
 ```
+
+Run the regression tests with Node.js 20 or later:
+
+```bash
+npm run test:date
+npx playwright install chromium webkit
+npm run test:browser
+```
+
+Browser tests rebuild the library and demo, then exercise the library bundle in Chromium and WebKit.
 
 [npm-image]: https://img.shields.io/npm/v/vue-awesome-picker.svg?style=flat
 [npm-url]: https://npmjs.org/package/vue-awesome-picker
