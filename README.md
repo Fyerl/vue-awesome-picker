@@ -129,6 +129,12 @@ Index array format:
 [0, 0]
 ```
 
+Scrolling changes the temporary selection. Clicking Cancel or the outside mask
+discards those changes: reopening restores the selection from when that opening
+began, including the initial anchor or a selection confirmed on a previous opening.
+Cancellation does not emit `confirm` or modify the `anchor` prop. Replacing `data`
+starts a new selection using the supplied anchor instead of restoring the old data's selection.
+
 ## Methods
 
 | Method | Description |
