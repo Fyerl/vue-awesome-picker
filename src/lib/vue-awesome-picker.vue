@@ -103,6 +103,9 @@ export default {
       dataChange: false,
       pickerData: this._dataGetter(),
       pickerAnchor: this._anchorGetter(),
+      openingAnchor: [],
+      cancelledAnchor: null,
+      restoringSelection: false,
       wheels: []
     }
   },
@@ -180,23 +183,35 @@ export default {
     },
 
     show () {
+      if (this.display) {
+        return
+      }
+      const cancelledAnchor = this.cancelledAnchor
+      this.cancelledAnchor = null
+      if (cancelledAnchor) {
+        this.restoringSelection = true
+        this.pickerAnchor = [...cancelledAnchor]
+      }
       this.display = true
-      if (!this.wheels.length || this.dataChange) {
+      if (!this.wheels.length || this.dataChange || cancelledAnchor) {
         this.dataType === DATA_CASCADE && this._updatePickerData()
         this.$nextTick(() => {
           const wheelWrapper = this.$refs.wheelWrapper
           this.pickerData.forEach((item, index) => {
             this._createWheel(wheelWrapper, index).enable()
           })
-          this._wheelToAnchor(this.proxyAnchor)
+          this._wheelToAnchor(cancelledAnchor ? this.pickerAnchor : this.proxyAnchor)
 
-          this.dataChange && this._destroyExtraWheels()
+          this._destroyExtraWheels()
           this.dataChange = false
+          this.restoringSelection = false
+          this.openingAnchor = this._getCurrentValue().map(item => item.index)
         })
       } else {
         this.wheels.forEach((wheel) => {
           wheel.enable()
         })
+        this.openingAnchor = this._getCurrentValue().map(item => item.index)
       }
     },
 
@@ -227,7 +242,8 @@ export default {
     },
 
     _cascadePickerChange (i) {
-      if (this.dataType !== DATA_CASCADE) {
+      // Refreshing a restored path must not reset its child selections.
+      if (this.restoringSelection || this.dataType !== DATA_CASCADE) {
         return
       }
       const newIndex = this._getCurrentValue()[i].index
@@ -256,6 +272,7 @@ export default {
     },
 
     _setPickerData () {
+      this.cancelledAnchor = null
       this.pickerData = this._dataGetter()
       this.pickerAnchor = this._anchorGetter()
       if (this.display) {
@@ -266,6 +283,7 @@ export default {
           })
           this._wheelToAnchor(this.proxyAnchor)
           this._destroyExtraWheels()
+          this.openingAnchor = this._getCurrentValue().map(item => item.index)
         })
       } else {
         this.dataChange = true
@@ -331,6 +349,7 @@ export default {
     },
 
     cancel () {
+      this.cancelledAnchor = [...this.openingAnchor]
       this.$emit(EVENT_CANCEL)
       this.hide()
     }
