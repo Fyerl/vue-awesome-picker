@@ -1,7 +1,7 @@
 <template>
   <div>
     <transition name="fade">
-      <div class="mask" v-show="display" @click="hide"></div>
+      <div class="mask" v-show="display" @click="cancel"></div>
     </transition>
     <transition name="slide">
       <div class="picker" v-show="display">
