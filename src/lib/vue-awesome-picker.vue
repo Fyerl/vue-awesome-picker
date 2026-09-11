@@ -105,7 +105,8 @@ export default {
       pickerAnchor: this._anchorGetter(),
       openingAnchor: [],
       cancelledAnchor: null,
-      restoringSelection: false,
+      syncingWheels: false,
+      wheelSyncId: 0,
       wheels: []
     }
   },
@@ -126,6 +127,7 @@ export default {
     }
   },
   beforeDestroy () {
+    this.wheelSyncId++
     this.wheels.forEach((wheel) => {
       wheel.destroy()
     })
@@ -159,7 +161,11 @@ export default {
         }
       }
 
+      const data = this._dataGetter()
+      const isCascade = !Array.isArray(data[0])
+      let nodes = data
       anchor = anchor.map((item, i) => {
+        const values = isCascade ? nodes.map(node => node.value) : (data[i] || [])
         let index = 0
         const isObjectAnchor = item && typeof item === 'object'
         if (isObjectAnchor && Object.prototype.hasOwnProperty.call(item, 'index')) {
@@ -168,14 +174,19 @@ export default {
           const rawValue = isObjectAnchor && Object.prototype.hasOwnProperty.call(item, 'value')
             ? item.value
             : item
-          index = this.pickerData && this.pickerData[i] && this.pickerData[i].indexOf(rawValue) > -1
-            ? this.pickerData[i].indexOf(rawValue)
+          index = values.indexOf(rawValue) > -1
+            ? values.indexOf(rawValue)
             : Number(rawValue)
         }
         if (!isFinite(index) || index < 0) {
           index = 0
         } else {
           index = Math.floor(index)
+        }
+        if (isCascade) {
+          if (index >= nodes.length) index = 0
+          const selected = nodes[index]
+          nodes = selected && Array.isArray(selected.children) ? selected.children : []
         }
         return index
       })
@@ -188,25 +199,12 @@ export default {
       }
       const cancelledAnchor = this.cancelledAnchor
       this.cancelledAnchor = null
-      if (cancelledAnchor) {
-        this.restoringSelection = true
-        this.pickerAnchor = [...cancelledAnchor]
-      }
       this.display = true
       if (!this.wheels.length || this.dataChange || cancelledAnchor) {
+        this.pickerAnchor = cancelledAnchor ? [...cancelledAnchor] : this._anchorGetter()
         this.dataType === DATA_CASCADE && this._updatePickerData()
-        this.$nextTick(() => {
-          const wheelWrapper = this.$refs.wheelWrapper
-          this.pickerData.forEach((item, index) => {
-            this._createWheel(wheelWrapper, index).enable()
-          })
-          this._wheelToAnchor(cancelledAnchor ? this.pickerAnchor : this.proxyAnchor)
-
-          this._destroyExtraWheels()
-          this.dataChange = false
-          this.restoringSelection = false
-          this.openingAnchor = this._getCurrentValue().map(item => item.index)
-        })
+        this._syncWheels(0, true)
+        this.dataChange = false
       } else {
         this.wheels.forEach((wheel) => {
           wheel.enable()
@@ -242,20 +240,43 @@ export default {
     },
 
     _cascadePickerChange (i) {
-      // Refreshing a restored path must not reset its child selections.
-      if (this.restoringSelection || this.dataType !== DATA_CASCADE) {
+      if (this.syncingWheels || !this.display || this.dataType !== DATA_CASCADE) {
         return
       }
-      const newIndex = this._getCurrentValue()[i].index
+      const newIndex = this.wheels[i].getSelectedIndex()
       if (newIndex !== this.pickerAnchor[i]) {
         this.pickerAnchor.splice(i, 1, newIndex)
         this._updatePickerData(i + 1)
+        this._syncWheels(i + 1)
       }
     },
 
-    _wheelToAnchor (data) {
+    _syncWheels (startIndex = 0, rememberOpening = false) {
+      this.syncingWheels = true
+      const syncId = ++this.wheelSyncId
+      // Refresh after every column has rendered, and ignore obsolete data updates.
+      this.$nextTick(() => {
+        if (syncId !== this.wheelSyncId) return
+        const wheelWrapper = this.$refs.wheelWrapper
+        this._destroyExtraWheels()
+        this.pickerData.forEach((item, index) => {
+          // Leave ancestor wheels free to finish any ongoing user scroll.
+          if (index < startIndex) return
+          const wheel = this._createWheel(wheelWrapper, index)
+          this.display ? wheel.enable() : wheel.disable()
+        })
+        // Programmatic scrollEnd events must not reset the path being applied.
+        this._wheelToAnchor(this.pickerAnchor, startIndex)
+        this.syncingWheels = false
+        if (rememberOpening) {
+          this.openingAnchor = this._getCurrentValue().map(item => item.index)
+        }
+      })
+    },
+
+    _wheelToAnchor (data, startIndex = 0) {
       this.wheels.forEach((wheel, i) => {
-        wheel.wheelTo(data[i] || 0)
+        if (i >= startIndex) wheel.wheelTo(data[i] || 0)
       })
     },
 
@@ -272,19 +293,14 @@ export default {
     },
 
     _setPickerData () {
+      this.wheelSyncId++
+      this.syncingWheels = false
       this.cancelledAnchor = null
       this.pickerData = this._dataGetter()
       this.pickerAnchor = this._anchorGetter()
+      this.dataType === DATA_CASCADE && this._updatePickerData()
       if (this.display) {
-        this.$nextTick(() => {
-          const wheelWrapper = this.$refs.wheelWrapper
-          this.pickerData.forEach((item, i) => {
-            this._createWheel(wheelWrapper, i)
-          })
-          this._wheelToAnchor(this.proxyAnchor)
-          this._destroyExtraWheels()
-          this.openingAnchor = this._getCurrentValue().map(item => item.index)
-        })
+        this._syncWheels(0, true)
       } else {
         this.dataChange = true
       }
@@ -301,46 +317,29 @@ export default {
     },
 
     _updatePickerData (wheelIndex = 0) {
-      let data = [...this.proxyData]
+      let data = this.proxyData
+      const pickerData = []
+      const pickerAnchor = []
       let i = 0
-      while (data) {
-        if (i >= wheelIndex) {
-          let wheelData = []
-          data.forEach((item) => {
-            wheelData.push(item.value)
-          })
-          this.pickerData[i] = wheelData
-          this.pickerAnchor[i] = wheelIndex === 0
-            ? (this.pickerAnchor[i] < data.length ? this.pickerAnchor[i] || 0 : 0)
-            : this._reloadWheel(i, wheelData)
+      while (Array.isArray(data) && data.length) {
+        let index = wheelIndex > 0 && i >= wheelIndex ? 0 : this.pickerAnchor[i]
+        if (!isFinite(index) || Math.floor(index) !== index || index < 0 || index >= data.length) {
+          index = 0
         }
-        data = data.length ? data[this.pickerAnchor[i]].children : null
+        pickerData.push(data.map(item => item.value))
+        pickerAnchor.push(index)
+        data = data[index].children
         i++
       }
-      this.pickerData = this.pickerData.slice(0, i)
-    },
-
-    _reloadWheel (index, data) {
-      const wheelWrapper = this.$refs.wheelWrapper
-      let scroll = wheelWrapper.children[index].querySelector('.wheel-scroll')
-      let wheel = this.wheels ? this.wheels[index] : false
-      let dist = 0
-      if (scroll && wheel) {
-        this.$set(this.pickerData, index, data)
-        this.pickerAnchor[index] = dist
-        this.$nextTick(() => {
-          wheel = this._createWheel(wheelWrapper, index)
-          wheel.wheelTo(dist)
-        })
-      }
-      return dist
+      this.pickerData = pickerData
+      this.pickerAnchor = pickerAnchor
     },
 
     confirm () {
       const isInTransition = this.wheels.some((wheel) => {
         return wheel.isInTransition
       })
-      if (isInTransition) {
+      if (this.syncingWheels || isInTransition) {
         return
       }
       const selectedValues = this._getCurrentValue()

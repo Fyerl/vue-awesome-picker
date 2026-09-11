@@ -89,6 +89,11 @@ Normal picker (single or multi-column): pass a two-dimensional array.
 
 Cascade picker: build hierarchy using `children`.
 
+Each column follows the selected item in its parent column. Changing a parent
+resets all descendant columns to their first item. An empty or omitted `children`
+array ends the path, so `confirm` only contains the populated columns. Empty root
+data produces an empty selection (`[]`).
+
 ```javascript
 [
   {
@@ -115,6 +120,11 @@ Cascade picker: build hierarchy using `children`.
 
 Recommended object array format (same shape as the `confirm` event payload).  
 When both `index` and `value` exist, `index` has higher priority.
+
+Cascade anchors are resolved from parent to child. Each index must exist in the
+selected parent's children; an out-of-range index falls back to `0` at that level.
+When an anchor object only supplies `value`, that value is matched within the
+selected parent's children.
 
 ```javascript
 [
