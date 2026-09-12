@@ -114,6 +114,26 @@ data produces an empty selection (`[]`).
 ]
 ```
 
+#### Changing the number of columns
+
+Replace `data` to add or remove columns, including while the picker is open.
+For normal data, change the number of inner arrays. For cascade data, change the
+`children` hierarchy. Supply an `anchor` for the new data to select its initial path.
+
+For example, switch from a single cascade column to two columns and reopen:
+
+```javascript
+// Previously: this.picker.data = [{ value: 'A' }, { value: 'B' }]
+this.picker.data = ['A', 'B'].map(value => ({
+  value,
+  children: ['X', 'Y', 'Z'].map(child => ({ value: value + child }))
+}))
+this.picker.anchor = [1, 2] // Selects B and BZ
+this.$nextTick(() => this.$refs.picker.show())
+```
+
+Wait for Vue to pass updated props to the component before calling `show()`.
+
 ### `anchor`
 
 `anchor` controls the default selected item for each wheel when the picker opens. It supports two formats. If no match is found, index `0` is selected.
