@@ -113,6 +113,12 @@ export default {
   watch: {
     data () {
       this._setPickerData()
+    },
+    anchor: {
+      deep: true,
+      handler () {
+        this._setPickerData()
+      }
     }
   },
   computed: {
