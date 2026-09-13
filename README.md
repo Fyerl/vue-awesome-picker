@@ -163,7 +163,39 @@ Scrolling changes the temporary selection. Clicking Cancel or the outside mask
 discards those changes: reopening restores the selection from when that opening
 began, including the initial anchor or a selection confirmed on a previous opening.
 Cancellation does not emit `confirm` or modify the `anchor` prop. Replacing `data`
-starts a new selection using the supplied anchor instead of restoring the old data's selection.
+or reactively updating `anchor` starts a new selection using the supplied anchor.
+An anchor update also applies while the picker is open and becomes the new
+cancellation baseline. It does not emit `confirm`.
+
+#### Choosing the built-in date
+
+Use `anchor` with `type="date"`; custom date data is not required. Date values
+include the `Y`, `M`, and `D` suffixes, with years from 1900 through 2100:
+
+```vue
+<awesome-picker ref="datePicker" type="date" :anchor="dateAnchor" />
+```
+
+```javascript
+data () {
+  return { dateAnchor: [] }
+},
+methods: {
+  showDate (year, month, day) {
+    this.dateAnchor = [
+      { value: `${year}Y` },
+      { value: `${month}M` },
+      { value: `${day}D` }
+    ]
+    this.$nextTick(() => this.$refs.datePicker.show())
+  }
+}
+```
+
+For example, `showDate(2024, 2, 29)` opens at February 29, 2024, even after a
+previous confirmation or cancellation. The equivalent zero-based index anchor
+is `[124, 1, 28]`. Setting `anchor` to `[]` restores the built-in default date.
+Replace the anchor array as above, or use Vue 2 reactive mutations to edit it.
 
 ## Methods
 
