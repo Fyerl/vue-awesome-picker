@@ -49,6 +49,12 @@ const COLOR_CANCEL = '#999999'
 const EVENT_CONFIRM = 'confirm'
 const EVENT_CANCEL = 'cancel'
 
+function getOptionValue (item) {
+  return item && typeof item === 'object' && Object.prototype.hasOwnProperty.call(item, 'value')
+    ? item.value
+    : item
+}
+
 export default {
   name: 'awesome-picker',
   props: {
@@ -63,6 +69,10 @@ export default {
       default () {
         return []
       }
+    },
+    includeItem: {
+      type: Boolean,
+      default: false
     },
     type: {
       type: String,
@@ -101,7 +111,7 @@ export default {
     return {
       display: false,
       dataChange: false,
-      pickerData: this._dataGetter(),
+      pickerData: this._dataGetter(true),
       pickerAnchor: this._anchorGetter(),
       openingAnchor: [],
       cancelledAnchor: null,
@@ -140,7 +150,7 @@ export default {
     this.wheels = []
   },
   methods: {
-    _dataGetter () {
+    _dataGetter (displayValues = false) {
       let data = null
       switch (this.type) {
         case TYPE_TIME:
@@ -151,7 +161,9 @@ export default {
         default:
           data = this.data; break
       }
-      return [...data]
+      return displayValues && Array.isArray(data[0])
+        ? data.map(column => column.map(getOptionValue))
+        : [...data]
     },
 
     _anchorGetter () {
@@ -171,7 +183,7 @@ export default {
       const isCascade = !Array.isArray(data[0])
       let nodes = data
       anchor = anchor.map((item, i) => {
-        const values = isCascade ? nodes.map(node => node.value) : (data[i] || [])
+        const values = isCascade ? nodes.map(node => node.value) : (data[i] || []).map(getOptionValue)
         let index = 0
         const isObjectAnchor = item && typeof item === 'object'
         if (isObjectAnchor && Object.prototype.hasOwnProperty.call(item, 'index')) {
@@ -286,14 +298,22 @@ export default {
       })
     },
 
-    _getCurrentValue () {
+    _getCurrentValue (includeItem = false) {
       const value = []
+      const isCascade = this.dataType === DATA_CASCADE
+      let nodes = this.proxyData
       this.wheels.forEach((wheel, i) => {
         const j = wheel.getSelectedIndex()
-        value.push({
+        const selected = {
           index: j,
           value: this.pickerData[i][j]
-        })
+        }
+        if (includeItem) {
+          const item = isCascade ? nodes[j] : (nodes[i] || [])[j]
+          selected.item = item
+          if (isCascade) nodes = item && Array.isArray(item.children) ? item.children : []
+        }
+        value.push(selected)
       })
       return value
     },
@@ -302,7 +322,7 @@ export default {
       this.wheelSyncId++
       this.syncingWheels = false
       this.cancelledAnchor = null
-      this.pickerData = this._dataGetter()
+      this.pickerData = this._dataGetter(true)
       this.pickerAnchor = this._anchorGetter()
       this.dataType === DATA_CASCADE && this._updatePickerData()
       if (this.display) {
@@ -348,7 +368,7 @@ export default {
       if (this.syncingWheels || isInTransition) {
         return
       }
-      const selectedValues = this._getCurrentValue()
+      const selectedValues = this._getCurrentValue(this.includeItem)
       this.$emit(EVENT_CONFIRM, selectedValues)
       this.hide()
     },
