@@ -65,6 +65,7 @@ methods: {
 | --- | --- | --- | --- | --- |
 | `data` | See the `data` section below | - | `Array` | `[]` |
 | `anchor` | See the `anchor` section below | - | `Array` | `[]` |
+| `includeItem` | Include the original selected option as `item` in each `confirm` result | - | `Boolean` | `false` |
 | `type` | Built-in picker type (no `data` required) | `date`, `time` | `String` | - |
 | `textTitle` | Title text | - | `String` | `''` |
 | `textConfirm` | Confirm button text | - | `String` | `Confirm` |
@@ -78,7 +79,9 @@ methods: {
 
 `vue-awesome-picker` determines whether the picker is normal or cascade by `data` shape, so please follow one of the formats below.
 
-Normal picker (single or multi-column): pass a two-dimensional array.
+Normal picker (single or multi-column): pass a two-dimensional array. Each option
+can be a primitive value or an object with a `value` field. Object options display
+only `value`; use `includeItem` to retrieve fields such as `id` on confirmation.
 
 ```javascript
 [
@@ -207,8 +210,41 @@ Replace the anchor array as above, or use Vue 2 reactive mutations to edit it.
 
 | Event | Description | Payload |
 | --- | --- | --- |
-| `confirm` | Triggered after clicking the confirm button | `[{ index, value }, ...]` |
+| `confirm` | Triggered after clicking the confirm button | `[{ index, value }, ...]`; with `includeItem`: `[{ index, value, item }, ...]` |
 | `cancel` | Triggered after clicking the cancel button or the mask outside the picker | - |
+
+### Returning ids and custom fields
+
+Enable `includeItem` to read the original option alongside its selected index and
+display value. The default remains `false`, preserving the existing confirmation
+payload. This works with both normal columns and cascade objects.
+
+```vue
+<awesome-picker ref="peoplePicker" :data="people" include-item @confirm="onConfirm" />
+```
+
+```javascript
+data () {
+  return {
+    people: [[
+      { value: 'Alice', id: 42, department: 'Design' },
+      { value: 'Bob', id: 73, department: 'Engineering' }
+    ]]
+  }
+},
+methods: {
+  onConfirm (selection) {
+    const { index, value, item } = selection[0]
+    console.log(index, value, item.id, item.department)
+  }
+}
+```
+
+`item` references the original option, including its custom fields and any
+`children`; treat it as read-only. For primitive options, `item` is that primitive.
+Items follow the selected indices and cascade path, so duplicate display values
+can still return distinct ids. The picker does not merge custom fields into
+`index` or `value`, and does not add `item` unless `includeItem` is enabled.
 
 ## Development
 
