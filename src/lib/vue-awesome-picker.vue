@@ -48,6 +48,7 @@ const COLOR_CANCEL = '#999999'
 
 const EVENT_CONFIRM = 'confirm'
 const EVENT_CANCEL = 'cancel'
+const EVENT_CHANGE = 'change'
 
 function getOptionValue (item) {
   return item && typeof item === 'object' && Object.prototype.hasOwnProperty.call(item, 'value')
@@ -114,6 +115,7 @@ export default {
       pickerData: this._dataGetter(true),
       pickerAnchor: this._anchorGetter(),
       openingAnchor: [],
+      lastChangeSelection: [],
       cancelledAnchor: null,
       syncingWheels: false,
       wheelSyncId: 0,
@@ -227,7 +229,8 @@ export default {
         this.wheels.forEach((wheel) => {
           wheel.enable()
         })
-        this.openingAnchor = this._getCurrentValue().map(item => item.index)
+        this.lastChangeSelection = this._getCurrentValue()
+        this.openingAnchor = this.lastChangeSelection.map(item => item.index)
       }
     },
 
@@ -250,7 +253,10 @@ export default {
         })
         wheel.on('scrollEnd', () => {
           this._cascadePickerChange(i)
+          this._emitChange()
         })
+        // A held, unmoved wheel can delay a change from another column.
+        wheel.on('scrollCancel', () => this._emitChange())
       } else {
         this.wheels[i].refresh()
       }
@@ -287,9 +293,26 @@ export default {
         this._wheelToAnchor(this.pickerAnchor, startIndex)
         this.syncingWheels = false
         if (rememberOpening) {
-          this.openingAnchor = this._getCurrentValue().map(item => item.index)
+          this.lastChangeSelection = this._getCurrentValue()
+          this.openingAnchor = this.lastChangeSelection.map(item => item.index)
+        } else {
+          this._emitChange()
         }
       })
+    },
+
+    _emitChange () {
+      if (!this.display || this.syncingWheels || this.wheels.some(wheel => wheel.isInTransition || wheel.isAnimating || wheel.initiated)) {
+        return
+      }
+      const selection = this._getCurrentValue()
+      const previous = this.lastChangeSelection
+      if (selection.length === previous.length && selection.every((item, i) => item.index === previous[i].index && item.value === previous[i].value)) {
+        return
+      }
+      this.lastChangeSelection = selection
+      // Keep the comparison snapshot separate from the listener's payload.
+      this.$emit(EVENT_CHANGE, this._getCurrentValue(this.includeItem))
     },
 
     _wheelToAnchor (data, startIndex = 0) {
