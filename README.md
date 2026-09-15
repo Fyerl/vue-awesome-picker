@@ -65,7 +65,7 @@ methods: {
 | --- | --- | --- | --- | --- |
 | `data` | See the `data` section below | - | `Array` | `[]` |
 | `anchor` | See the `anchor` section below | - | `Array` | `[]` |
-| `includeItem` | Include the original selected option as `item` in each `confirm` result | - | `Boolean` | `false` |
+| `includeItem` | Include the original selected option as `item` in each `change` or `confirm` result | - | `Boolean` | `false` |
 | `type` | Built-in picker type (no `data` required) | `date`, `time` | `String` | - |
 | `textTitle` | Title text | - | `String` | `''` |
 | `textConfirm` | Confirm button text | - | `String` | `Confirm` |
@@ -210,14 +210,61 @@ Replace the anchor array as above, or use Vue 2 reactive mutations to edit it.
 
 | Event | Description | Payload |
 | --- | --- | --- |
+| `change` | A visible selection changes after scrolling and cascade synchronization finish | Same shape as `confirm`, including optional `item` |
 | `confirm` | Triggered after clicking the confirm button | `[{ index, value }, ...]`; with `includeItem`: `[{ index, value, item }, ...]` |
 | `cancel` | Triggered after clicking the cancel button or the mask outside the picker | - |
+
+### Previewing a selection before confirmation
+
+Listen to `change` for a temporary selection and `confirm` for the final choice.
+`change` fires after the wheels finish moving, not for every item passed during a
+swipe. Cascade changes contain the complete synchronized path. Concurrently moving
+columns settle before a preview is emitted, and unchanged selections are not
+emitted again.
+
+Opening, reopening, updating `data` or `anchor`, and restoring a cancelled
+selection do not emit `change`. A new opening or external data/anchor update
+establishes a new comparison baseline. `change` does not close the picker, commit
+the selection, or change its cancellation behavior.
+
+```vue
+<awesome-picker
+  ref="picker"
+  :data="options"
+  @change="onChange"
+  @confirm="onConfirm"
+  @cancel="onCancel"
+/>
+```
+
+```javascript
+data () {
+  return { options: [['A', 'B', 'C']], preview: [], saved: [] }
+},
+methods: {
+  onChange (selection) {
+    this.preview = selection
+  },
+  onConfirm (selection) {
+    this.saved = selection
+    this.preview = selection
+  },
+  onCancel () {
+    this.preview = this.saved
+  }
+}
+```
+
+Cancellation restores the picker's opening selection. It cannot undo effects
+already applied by your `change` handler, so discard or restore the application's
+preview in `cancel`, as above. Use `confirm` for actions that should be committed.
 
 ### Returning ids and custom fields
 
 Enable `includeItem` to read the original option alongside its selected index and
 display value. The default remains `false`, preserving the existing confirmation
-payload. This works with both normal columns and cascade objects.
+payload. `change` also includes `item` when enabled. This works with both normal
+columns and cascade objects.
 
 ```vue
 <awesome-picker ref="peoplePicker" :data="people" include-item @confirm="onConfirm" />
