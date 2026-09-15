@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2.0.0'
+const CACHE_VERSION = '2.1.0'
 const CACHE_NAME = `vap-cache-${CACHE_VERSION}`
 const cacheUrls = [
   './',
